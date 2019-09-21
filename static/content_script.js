@@ -126,7 +126,7 @@ function apply(applyBtn, priceInfo, setting) {
   getSetting('last_apply_price' + applyId, (lastApply) => {
     let lastApplyPrice = lastApply ? lastApply.price : localStorage.getItem('jjb_order_' + applyId)
     if (priceInfo.price > 0 && priceInfo.price < order_price && (order_price - priceInfo.price) > setting.pro_min ) {
-      if (lastApplyPrice && Number(lastApplyPrice) <= priceInfo.price) {
+      if (lastApplyPrice && Number(lastApplyPrice) - priceInfo.price <= setting.pro_min ) {
         console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', priceInfo.price, ' Vs ', lastApplyPrice)
         return
       }
@@ -203,9 +203,81 @@ function apply(applyBtn, priceInfo, setting) {
   });
 }
 
+
+// 提取优惠信息
+function seekPromInfo(platform) {
+  let urlInfo, sku
+  let promotions = []
+  if (platform == 'pc') {
+    urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
+    sku = urlInfo[2]
+
+    $(".prom-gift-list .prom-gift-item").each(function (index, giftDom) {
+      let number, img, description, link
+      number = $(giftDom).find(".gift-number").text()
+      if ($(giftDom).find("a")) {
+        link = $(giftDom).find("a").attr("href")
+        img = $(giftDom).find(".gift-img").attr("src")
+        description = $(giftDom).find("a").attr("title")
+      }
+      promotions.push({
+        typeName: "赠品",
+        number,
+        img,
+        description,
+        link
+      })
+    })
+    $(".p-promotions .prom-item").each(function (index, promDom) {
+      let typeName, code, description, link
+      typeName = $(promDom).find(".hl_red_bg").text()
+      code = $(promDom).data("code")
+      description = $(promDom).find(".hl_red").text()
+      if ($(promDom).find("a")) {
+        link = $(promDom).find("a").attr("href")
+      }
+      promotions.push({
+        typeName,
+        code,
+        description,
+        link
+      })
+    })
+  } else {
+    urlInfo = /(https|http):\/\/(item.m.jd.com|mitem.jd.hk)\/product\/([0-9]*).html/g.exec(window.location.href);
+    sku = urlInfo[3]
+    $(".mod_discount .detail_prom .prom_item").each(function (index, promDom) {
+      let typeName, code, description, link
+      typeName = $(promDom).find(".hl_red_bg").text()
+      code = $(promDom).find(".de_tag").data("code")
+      description = $(promDom).find(".de_span").text()
+      if ($(promDom).find("a")) {
+        link = $(promDom).find("a").attr("href")
+      }
+      promotions.push({
+        typeName,
+        code,
+        description,
+        link
+      })
+    })
+  }
+  console.log('find promotions', platform, promotions)
+  // 通知促销
+  chrome.runtime.sendMessage({
+    action: 'promotions',
+    sku,
+    promotions
+  }, function (response) {
+    console.log("promotions Response: ", response);
+  });
+}
+
 // 提取价格信息
 function seekPriceInfo(platform) {
-  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price, earnest_price, skuName
+  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price, skuName
+  // 顺便获取促销
+  seekPromInfo(platform)
   if (platform == 'pc') {
     urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
     skuName = $(".sku-name").text() ? $(".sku-name").text().trim() : null
@@ -546,8 +618,9 @@ function getCommonUseCoupon(task) {
       if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类") > -1) {
         let coupon_name = that.find('.q-range').text().trim()
         let coupon_price = that.find('.q-price strong').text().trim() + '元 (' + that.find('.q-limit').text().trim() + ')'
+        let targetBtn = $(that).find('.btn-def')
         setTimeout(function () {
-          $(that).find('.btn-def').trigger("click")
+          simulateClick(targetBtn, true)
           setTimeout(function () {
             if ($(".tip-title").text() && $(".tip-title").text().indexOf("领取成功") > -1) {
               chrome.runtime.sendMessage({
@@ -1565,17 +1638,17 @@ function observerBeanCheckinResult() {
   })
 }
 
-// 6: 金融钢镚签到
-function guangbeng(setting) {
+// 6: 金融钢镚签到（已失效）
+function gangbeng(setting) {
   if (setting != 'never') {
-    console.log('签到领京豆（jr-qyy）')
+    console.log('金融钢镚签到（jr-qyy）')
     weui.toast('京价保运行中', 1000);
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "6"
     })
-    if ($(".gangbeng .btn").text() == "签到") {
-      simulateClick($(".gangbeng .btn"), true)
+    if ($(".we-ce-content .content-text").text() == "免费领京豆奖励" && $(".we-ce-content .content-button .button-text").text() == "立即领取") {
+      // simulateClick($(".we-ce-content .content-button .button-text"), true)
       // 监控结果
       setTimeout(function () {
         if (($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
@@ -1597,7 +1670,7 @@ function guangbeng(setting) {
         }
       }, 1000)
     } else {
-      if ($(".gangbeng .btn").text() == "已签到") {
+      if ($(".we-ce-content .content-button .button-text").text() == "已签到") {
         markCheckinStatus('jr-qyy')
       }
     }
@@ -1620,7 +1693,7 @@ function jrIndex(setting) {
         let resultElement = $('.signDialog h1:visible')
         if (resultElement && resultElement.text().indexOf('成功') > -1) {
           if (observer) observer.disconnect();
-          let rawValue = $("#fengkong .goldcolor").text()
+          let rawValue = $("#fengkong .goldcolor").first().text()
           markCheckinStatus('jr-index', rawValue + "个钢镚", () => {
             chrome.runtime.sendMessage({
               action: "checkin_notice",
@@ -1711,6 +1784,10 @@ function triggerTask(task) {
     case '22':
       getGoldCoin(task)
       break;
+    // 6: 钢镚
+    case '6':
+      gangbeng(task)
+      break;
     default:
       break;
   }
@@ -1798,12 +1875,12 @@ function CheckDom() {
   // 移动商品页
   if (window.location.host == 'item.m.jd.com') {
     setTimeout(() => {
-      seekPriceInfo();
+      seekPriceInfo("m");
     }, 500);
   }
 
   // 移动页增加滑动支持
-  if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com' || window.location.host == 'm.jr.jd.com') {
+  if (window.location.host == 'm.jd.com' || window.location.host == 'm.jr.jd.com') {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
     injectScriptCode(`
       setTimeout(function () {
@@ -1845,7 +1922,7 @@ function CheckDom() {
   // 京东金融慧赚钱签到 (6:金融慧赚钱签到)
   if ($(".assets-wrap .gangbeng").length > 0) {
     setTimeout(() => {
-      getSetting('job6_frequency', guangbeng)
+      getSetting('job6_frequency', gangbeng)
     }, 500);
   };
 

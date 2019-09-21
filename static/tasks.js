@@ -38,6 +38,29 @@ const tasks = [
     }
   },
   {
+    id: '15',
+    src: {
+      pc: 'https://jjb.zaoshu.so/event/coupon',
+    },
+    url: 'https://a.jd.com',
+    title: '全品类券',
+    description: "每天尝试领取全品类券（29减2/105减5/500减20/1000减30）",
+    schedule: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    mode: 'iframe',
+    location: {
+      host: ['a.jd.com'],
+      pathname: ['/']
+    },
+    type: ['pc'],
+    frequencyOption: ['5h', 'daily', 'never'],
+    frequency: '5h',
+    rateLimit:{
+      weekly: 55,
+      daily: 10,
+      hour: 2
+    }
+  },
+  {
     id: '3',
     src: {
       m: 'https://plus.m.jd.com/index',
@@ -69,8 +92,8 @@ const tasks = [
     type: ['m'],
     frequency: '5h',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -96,8 +119,8 @@ const tasks = [
       successKeyWord: "成功",
     },
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -115,8 +138,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -133,8 +156,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -152,15 +175,16 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '9',
     src: {
-      m: 'https://m.jr.jd.com/vip/sign/html/index.html',
+      m: 'https://uf.jr.jd.com/activities/sign/v4/html/index.html',
     },
     title: '金融会员签到',
     description: "京东金融会员签到，需要实名认证",
@@ -171,8 +195,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },

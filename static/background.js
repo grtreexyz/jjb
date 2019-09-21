@@ -292,7 +292,7 @@ function findJobs(platform) {
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
-        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day'))) {
+        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day')) || (task.checkin && !task.checked)) {
           jobStack = pushJob(task, jobStack)
         }
         break;
@@ -728,7 +728,6 @@ function reportPrice(priceInfo) {
   log('background', 'reportPrice', priceInfo)
   $.ajax({
     method: "POST",
-    type: "POST",
     url: `https://jjb.zaoshu.so/price/${priceInfo.sku}`,
     data: {
       name: priceInfo.name,
@@ -738,6 +737,20 @@ function reportPrice(priceInfo) {
       plus_price: priceInfo.plus_price ? Number(priceInfo.plus_price) : null,
       pingou_price: priceInfo.pingou_price ? Number(priceInfo.pingou_price) : null,
     },
+    timeout: 3000,
+    dataType: "json"
+  })
+}
+
+// 报告优惠信息
+function reportPromotions(promInfo) {
+  let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
+  if (disable_pricechart || !promInfo.sku) return
+  log('background', 'reportPromotions', promInfo)
+  $.ajax({
+    method: "PUT",
+    url: `https://jjb.zaoshu.so/price/${promInfo.sku}/promotions`,
+    data: promInfo,
     timeout: 3000,
     dataType: "json"
   })
@@ -832,6 +845,10 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         reportPrice(priceInfo)
       }
       sendResponse(priceInfo)
+      break;
+    // 促销信息
+    case 'promotions':
+      reportPromotions(msg)
       break;
     // 保存登录状态
     case 'saveLoginState':

@@ -469,7 +469,6 @@ a.buy-btn:hover{
     display: block;
 }
 
-#dialogs,
 #changeLogs {
     display: none;
 }
@@ -517,10 +516,6 @@ a.buy-btn:hover{
 
 .time{
     text-align: right;
-}
-
-.alipay_pay{
-    display: none;
 }
 
 .alipay_pay img{
@@ -776,8 +771,7 @@ img.weui-tabbar__icon {
 #wechatDialags,
 #feedbackDialags,
 #faqDialags,
-#jEventDialags,
-#listenAudio {
+#jEventDialags{
     display: none;
 }
 
