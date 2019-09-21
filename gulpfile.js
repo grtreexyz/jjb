@@ -6,7 +6,9 @@ const replace = require('gulp-replace');
 const preprocess = require('gulp-preprocess');
 const Bundler = require('parcel-bundler');
 const Path = require('path');
-
+process.env.NODE_ENV="production";
+process.env.VERSION = "1.0.0";
+process.env.BUILDID = "9128";
 async function bundleBuild(fileName) {
   let file = Path.join(__dirname, `./${fileName}`);
   let options = {
