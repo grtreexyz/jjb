@@ -227,12 +227,6 @@ $( document ).ready(function() {
     $("#listenAudio").show()
   })
 
-  $("#know_more").on("click", function () {
-    $("#loginNotice .detail").show()
-    $("#know_more").hide()
-  })
-
-
   $("#openWechatCard").on("click", function () {
     $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")
     $("#wechatDialags").show()

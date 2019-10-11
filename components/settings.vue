@@ -504,7 +504,7 @@
 </template>
 
 <script>
-import { frequencyOptionText, getTasks } from "../static/tasks";
+import { frequencyOptionText, getTasks  } from "../static/tasks";
 import { recommendServices } from "../static/variables";
 import { getSetting, saveSetting } from "../static/utils";
 import taskSetting from "./task-setting.vue";
@@ -607,7 +607,9 @@ export default {
           if (!hideNotice) {
             if (response.result == "success") {
               weui.toast("手动运行成功", 3000);
-            } else if (response.message) {
+            } else if (response.result == "pause") {
+              weui.alert(response.message, { title: "任务已暂停运行" });
+            } else {
               weui.alert(response.message, { title: "任务暂未运行" });
             }
           }
